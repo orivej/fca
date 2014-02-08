@@ -1,10 +1,14 @@
-# depends on underscore
+# depends on underscore, backbone, iced-runtime
 
 # Formal context (objects G, attributes M, relation L)
 # is modeled as (list, list, list of conses).
 # I is a lambda implementing L.
 
-@fca = {
+async = (fun) ->
+  (args..., cb) ->
+    cb fun args...
+
+module = @fca = _.extend {}, Backbone.Events, {
 
 phiMapping: (g, m, i) ->
   "All M1 from full set M that satisfy I for all G1"
@@ -40,16 +44,13 @@ nextClosure$: (a, m, l) ->
       # if mr ∩ (B \ A) = ∅ return B
       if (_.intersection(mr, _.difference(b, a))).length is 0
         return b
-  return false
+  return null
 
-userConfirm: (from, to) ->
+confirmationMessage: (from, to) ->
   if from.length
-    confirm "If something is #{from}, is it #{_.difference to, from}?"
+    "If something is #{from}, is it #{to}?"
   else
-    confirm "Is everything #{to}?"
-
-userExtend$: (e, parse) ->
-  e.push parse prompt "Counterexample:"
+    "Is everything #{to}?"
 
 ruleBasedClosure: (rules) ->
   (b) ->
@@ -69,9 +70,9 @@ Change E.
 Return values: implications L, (E, M, I)"
   mod = @
   _.extend options,
-    confirm: mod.userConfirm
+    confirm: async _.bind(confirm, window)
+    prompt: async _.bind(prompt, window)
     parse: (x) -> x
-    extend$: mod.userExtend$
   l = []
   a = []
   while a
@@ -79,11 +80,17 @@ Return values: implications L, (E, M, I)"
       ajj = @mClosure a, m, e, i
       if _.isEqual(_.object(a, a), _.object(ajj, ajj))
         break
-      if options.confirm a, ajj
+      ajj = _.difference ajj, a
+      await options.confirm @confirmationMessage(a, ajj), defer confirmed
+      if confirmed
         l.push [a, ajj]
+        module.trigger 'add-rule', a, ajj
         break
       else
-        options.extend$ e, options.parse
+        await options.prompt "Counterexample:", defer e1
+        e1 = options.parse e1
+        e.push e1
+        module.trigger 'add-example', e1
     a = @nextClosure$ a, m, @ruleBasedClosure l
   l # [e, m, i]
 
