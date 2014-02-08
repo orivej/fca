@@ -4,10 +4,6 @@
 # is modeled as (list, list, list of conses).
 # I is a lambda implementing L.
 
-async = (fun) ->
-  (args..., cb) ->
-    cb fun args...
-
 module = @fca = _.extend {}, Backbone.Events, {
 
 phiMapping: (g, m, i) ->
@@ -63,6 +59,10 @@ ruleBasedClosure: (rules) ->
           changed = true
     return b
 
+cps: (fun) ->
+  (args..., cb) ->
+    cb fun args...
+
 explore: (e, m, i, options) ->
   "E ⊆ M; I is E → M
 Initially E is NIL.
@@ -70,8 +70,8 @@ Change E.
 Return values: implications L, (E, M, I)"
   mod = @
   _.extend options,
-    confirm: async _.bind(confirm, window)
-    prompt: async _.bind(prompt, window)
+    confirm: module.cps _.bind(confirm, window)
+    prompt: module.cps _.bind(prompt, window)
     parse: (x) -> x
   l = []
   a = []
