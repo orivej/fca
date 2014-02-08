@@ -35,8 +35,16 @@
 
   m = ["even", "odd", "prime"];
 
-  alert(fca.explore([], m, relation, {
+  fca.on('add-rule', function(from, to) {
+    return document.write("New rule: " + from + " → " + to + "\n");
+  });
+
+  fca.on('add-example', function(e1) {
+    return document.write("New example: " + e1 + "\n");
+  });
+
+  fca.explore([], m, relation, {
     parse: parseInt
-  }));
+  });
 
 }).call(this);

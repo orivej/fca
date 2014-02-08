@@ -20,5 +20,11 @@ relation = (g1, m1) ->
 
 m = ["even", "odd", "prime"]
 
-alert fca.explore [], m, relation,
+fca.on 'add-rule', (from, to) ->
+  document.write "New rule: #{from} → #{to}\n"
+
+fca.on 'add-example', (e1) ->
+  document.write "New example: #{e1}\n"
+
+fca.explore [], m, relation,
   parse: parseInt
