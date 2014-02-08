@@ -61,7 +61,6 @@
 
 (defun rule-based-closure (rules)
   (lambda (b)
-    (log:i rules b)
     (iter
       (for changed = nil)
       (iter

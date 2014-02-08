@@ -1,7 +1,7 @@
 (in-package #:fca)
 
-(def-suite fca)
-(in-suite fca)
+(def-suite :fca)
+(in-suite :fca)
 
 (declaim (ftype (function (fixnum) (or fixnum null)) prime?))
 (defun prime? (n)
