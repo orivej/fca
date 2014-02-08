@@ -36,3 +36,6 @@ test "next-closure", ->
   a = []
   a = fca.nextClosure$ a, m, (b)->fca.mClosure b, m, g, relation
   deepEqual a, ["even"]
+  a = m
+  a = fca.nextClosure$ a, m, (b)->fca.mClosure b, m, g, relation
+  deepEqual a, ["even"]
