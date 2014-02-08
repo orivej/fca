@@ -47,7 +47,7 @@
 (defun user-confirm (from to)
   (let ((*print-case* :downcase))
     (if from
-        (format t "If something is~{ ~a~}, is it~{ ~a~}? " from (set-difference to from))
+        (format t "If something is~{ ~a~}, is it~{ ~a~}? " from to)
         (format t "Is everything~{ ~a~}? " to)))
   (ask-y-or-n))
 
@@ -82,6 +82,7 @@ Return values: implications L, (E, M, I)"
       (iter
         (for ajj = (m-closure a m e i))
         (until (set-equal a ajj))
+        (setf ajj (set-difference ajj a))
         (if (user-confirm a ajj)
             (return (push (cons a ajj) l))
             (setf e (user-extend e))))
