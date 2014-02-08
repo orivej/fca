@@ -45,7 +45,10 @@
       (#\n (return nil)))))
 
 (defun user-confirm (from to)
-  (format t "Is ~a → ~a? " from to)
+  (let ((*print-case* :downcase))
+    (if from
+        (format t "If something is~{ ~a~}, is it~{ ~a~}? " from (set-difference to from))
+        (format t "Is everything~{ ~a~}? " to)))
   (ask-y-or-n))
 
 (defun user-extend (e)
@@ -55,6 +58,18 @@
 (defun assoc-relation (l)
   (lambda (g1 m1)
     (member (cons g1 m1) l :test #'equal)))
+
+(defun rule-based-closure (rules)
+  (lambda (b)
+    (iter
+      (for changed = nil)
+      (iter
+        (for (p . q) in rules)
+        (when (subsetp p b)
+          (unless (subsetp q b)
+            (setf b (union b q)
+                  changed t))))
+      (unless changed (return b)))))
 
 (defun explore (e m j i)
   "E ⊆ M; J is E → M
@@ -66,10 +81,9 @@ Return values: implications L, (E, M, J)"
       (with a = nil) ; A enumerates closed sets of m-closure on M, E, I
       (iter
         (for ajj = (m-closure a m e i))
-        (log:i "? " a " → " ajj)
         (until (set-equal a ajj))
         (if (user-confirm a ajj)
             (return (push (cons a ajj) l))
             (setf e (user-extend e))))
-      (while (setf a (next-closure a m (named-lambda m-closure-on-m-e-i (b) (m-closure b m e i))))))
+      (while (setf a (next-closure a m (rule-based-closure l)))))
     (values l (list e m j))))
