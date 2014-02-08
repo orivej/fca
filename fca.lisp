@@ -30,12 +30,12 @@
 (defun next-closure (a m l)
   "Next closed set of closure L on A ⊆ M"
   (iter
-    (for (m1 . mr) on (reverse m))
+    (for (m1 . mr) on m)
     (if (member m1 a)
         (setf a (remove m1 a))
         (let ((b (funcall l (list* m1 a))))
           (when (null (intersection mr (set-difference b a)))
-            (return-from next-closure b))))))
+            (return b))))))
 
 (defun ask-y-or-n ()
   (iter
@@ -61,6 +61,7 @@
 
 (defun rule-based-closure (rules)
   (lambda (b)
+    (log:i rules b)
     (iter
       (for changed = nil)
       (iter
@@ -71,11 +72,11 @@
                   changed t))))
       (unless changed (return b)))))
 
-(defun explore (e m j i)
+(defun explore (e m i)
   "E ⊆ M; J is E → M
-Initially E and J are NIL.
-Change E and J.
-Return values: implications L, (E, M, J)"
+Initially E is NIL.
+Change E.
+Return values: implications L, (E, M, I)"
   (let (l)
     (iter
       (with a = nil) ; A enumerates closed sets of m-closure on M, E, I
@@ -86,4 +87,4 @@ Return values: implications L, (E, M, J)"
             (return (push (cons a ajj) l))
             (setf e (user-extend e))))
       (while (setf a (next-closure a m (rule-based-closure l)))))
-    (values l (list e m j))))
+    (values l (list e m i))))

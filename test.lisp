@@ -29,7 +29,13 @@
 (defvar m '(even odd prime))
 
 (test phi-psi-mapping
-  (is-true (set-equal '(even prime) (phi-mapping '(2)         m 'relation)))
-  (is-true (set-equal '(3 5)        (psi-mapping '(odd prime) g 'relation)))
-  (is-true (set-equal '(1 3 5)          (g-closure '(1)        g m 'relation)))
-  (is-true (set-equal '(even odd prime) (m-closure '(even odd) m g 'relation))))
+  (is (set-equal '(even prime) (phi-mapping '(2)         m 'relation)))
+  (is (set-equal '(3 5)        (psi-mapping '(odd prime) g 'relation)))
+  (is (set-equal '(1 3 5)          (g-closure '(1)        g m 'relation)))
+  (is (set-equal '(even odd prime) (m-closure '(even odd) m g 'relation))))
+
+(test rule-based-closure
+  (is (set-equal '(1 2) (funcall (rule-based-closure '(((1) . (2)))) '(1)))))
+
+(test next-closure
+  (is (set-equal '(even) (next-closure nil m (rcurry 'm-closure m g 'relation)))))
