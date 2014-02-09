@@ -8,16 +8,21 @@ LinkedState = R.addons.LinkedStateMixin
   form, label, input, button
 } = R.DOM
 
+delay = (ms, callback) ->
+  setTimeout callback, ms
+
 AttributesForm = RC
   render: ->
     (form {onSubmit: @explore}, [
       (label {}, 'Перечислите свойства через "|": '),
-      (input {valueLink: @props.attributesValueLink, style: {width: '50%'}, autoFocus: true}),
+      (input {onChange: @onChange, style: {width: '50%'}, autoFocus: true}),
       (button {}, 'Исследовать')
     ])
   explore: ->
     @props.onExplore()
     false
+  onChange: (e) ->
+    @props.onAttributesChange e.target.value
 
 ExamplesHeading = RC
   render: ->
@@ -31,11 +36,18 @@ ExamplesRow = RC
       (td {}, val)
     (tr {}, cells)
 
+hideIf = (cond, props) ->
+  if cond
+    props ?= {}
+    props.style ?= {}
+    props.style.display = 'none'
+  props
+
 ExamplesTable = RC
   render: ->
     rows = @props.examples.map (example) ->
       (ExamplesRow values: example)
-    (table {}, [
+    (table hideIf(not @props.attributes.length), [
       (caption {}, 'Примеры'),
       (ExamplesHeading attributes: @props.attributes),
       rows
@@ -45,7 +57,7 @@ RulesList = RC
   render: ->
     items = @props.rules.map ([from, to]) ->
       (li {}, if from.length then "Если #{from}, то #{to}" else "Всегда #{to}")
-    (div {}, [
+    (div hideIf(not items.length), [
       (p {}, 'Правила'),
       (ul {}, items)
     ])
@@ -58,42 +70,50 @@ manualRelation = () ->
     if rel? then rel else cache[g1][m1] = confirm "#{g1} — #{m1}?"
 
 App = RC
-  mixins: [LinkedState]
   render: ->
     (div {}, [
-      AttributesForm(attributesValueLink: @linkState('attributes'), onExplore: @explore),
-      ExamplesTable(attributes: @attributes(), examples: @state.examples),
+      AttributesForm(onAttributesChange: @attributesChanged, onExplore: @explore),
+      ExamplesTable(attributes: @state.attributes, examples: @state.examples),
       RulesList(rules: @state.rules)
     ])
   getInitialState: ->
-    attributes: ''
+    attributes: []
     examples: []
     rules: []
     model:
+      attributes: []
       examples: []
       rules: []
-  attributes: () ->
-    _.chain @state.attributes.split('|')
-    .map (s) -> s.trim()
-    .without ''
-    .uniq()
-    .value()
-  explore: ->
-    relation = manualRelation()
-    fca.off 'add-example'
-    fca.on 'add-example', (g1) =>
-      @state.model.examples.push [g1].concat @attributes().map (m1) -> if relation(g1, m1) then '✓' else ''
-      @setState @state.model
-    fca.off 'add-rule'
-    fca.on 'add-rule', (from, to) =>
-      @state.model.rules.push [from, to]
-      @setState @state.model
+  reset: ->
     @state.model.examples = []
     @state.model.rules = []
     @setState @state.model
-    fca.explore [], @attributes(), relation,
-      confirmationMessage: (from, to) ->
-        if from.length then "Если #{from}, то #{to}?" else "Всегда ли #{to}?"
-      counterexampleMessage: 'Контрпример:'
+  attributesChanged: (attributes) ->
+    console.log attributes
+    cur = @state.model.attributes
+    next = _.chain attributes.split('|')
+      .map (s) -> s.trim()
+      .without ''
+      .uniq()
+      .value()
+    unless _.isEqual cur, next
+      @state.model.attributes = next
+      @reset()
+  explore: ->
+    relation = manualRelation()
+    fca.off('add-example').on 'add-example', (g1) =>
+      @state.model.examples.push [g1].concat @state.attributes.map (m1) -> if relation(g1, m1) then '✓' else ''
+      @setState @state.model
+    fca.off('add-rule').on 'add-rule', (from, to) =>
+      @state.model.rules.push [from, to]
+      @setState @state.model
+    fca.off('abort').on 'abort', =>
+      @reset()
+    @reset()
+    delay 0, =>
+      fca.explore [], @state.attributes, relation,
+        confirmationMessage: (from, to) ->
+          if from.length then "Если #{from}, то #{to}?" else "Всегда ли #{to}?"
+        counterexampleMessage: 'Контрпример:'
 
 R.renderComponent App(), document.body

@@ -189,6 +189,10 @@ _break()
                               }));
                               __iced_deferrals._fulfill();
                             })(function() {
+                              if (!e1) {
+                                module.trigger('abort');
+                                return;
+                              }
                               e1 = options.parse(e1);
                               e.push(e1);
                               return __iced_k(module.trigger('add-example', e1));

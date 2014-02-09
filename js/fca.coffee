@@ -1,7 +1,7 @@
 # depends on underscore, backbone, iced-runtime
 
 # Formal context (objects G, attributes M, relation L)
-# is modeled as (list, list, list of conses).
+# is modeled as (list, list, list of pairs).
 # I is a lambda implementing L.
 
 module = @fca = _.extend {}, Backbone.Events, {
@@ -85,6 +85,9 @@ Return values: implications L, (E, M, I)"
         break
       else
         await options.prompt options.counterexampleMessage, defer e1
+        unless e1
+          module.trigger 'abort'
+          return
         e1 = options.parse e1
         e.push e1
         module.trigger 'add-example', e1
