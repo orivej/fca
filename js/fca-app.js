@@ -124,7 +124,7 @@
     attributes: function() {
       return _.chain(this.state.attributes.split('|')).map(function(s) {
         return s.trim();
-      }).without('').value();
+      }).without('').uniq().value();
     },
     explore: function() {
       var relation;

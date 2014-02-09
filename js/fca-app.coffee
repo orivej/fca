@@ -76,6 +76,7 @@ App = RC
     _.chain @state.attributes.split('|')
     .map (s) -> s.trim()
     .without ''
+    .uniq()
     .value()
   explore: ->
     relation = manualRelation()
