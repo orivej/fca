@@ -148,7 +148,6 @@
     },
     attributesChanged: function(attributes) {
       var cur, next;
-      console.log(attributes);
       cur = this.state.model.attributes;
       next = _.chain(attributes.split('|')).map(function(s) {
         return s.trim();

@@ -28,10 +28,11 @@
       "Closure from B ⊆ M onto M";
       return this.phiMapping(this.psiMapping(b, g, i), m, i);
     },
-    nextClosure$: function(a, m, l) {
-      "Next closed set of closure L on A ⊆ M. Mutates A.";
-      var aCopy, b, i, j, m1, mr, _i, _len;
+    nextClosure: function(a, m, l) {
+      "Next closed set of closure L on A ⊆ M.";
+      var b, i, j, m1, mr, _i, _len;
       mr = m;
+      a = _.clone(a);
       for (i = _i = 0, _len = m.length; _i < _len; i = ++_i) {
         m1 = m[i];
         mr = _.rest(mr);
@@ -39,9 +40,7 @@
         if (j > -1) {
           a.splice(j, 1);
         } else {
-          aCopy = a.slice();
-          aCopy.push(m1);
-          b = l(aCopy);
+          b = l(a.concat([m1]));
           if ((_.intersection(mr, _.difference(b, a))).length === 0) {
             return b;
           }
@@ -162,7 +161,7 @@ _break()
                               return confirmed = arguments[0];
                             };
                           })(),
-                          lineno: 80
+                          lineno: 79
                         }));
                         __iced_deferrals._fulfill();
                       })(function() {
@@ -185,7 +184,7 @@ _break()
                                     return e1 = arguments[0];
                                   };
                                 })(),
-                                lineno: 86
+                                lineno: 85
                               }));
                               __iced_deferrals._fulfill();
                             })(function() {
@@ -205,7 +204,7 @@ _break()
                 };
                 _while(__iced_k);
               })(function() {
-                return _next(a = _this.nextClosure$(a, m, _this.ruleBasedClosure(l)));
+                return _next(a = _this.nextClosure(a, m, _this.ruleBasedClosure(l)));
               });
             }
           };

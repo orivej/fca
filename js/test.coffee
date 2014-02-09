@@ -33,9 +33,7 @@ test "rule-based-closure", ->
   deepEqual fca.ruleBasedClosure([[[1], [2]]])([1]), [1, 2]
 
 test "next-closure", ->
-  a = []
-  a = fca.nextClosure$ a, m, (b)->fca.mClosure b, m, g, relation
+  a = fca.nextClosure [], m, (b)->fca.mClosure b, m, g, relation
   deepEqual a, ["even"]
-  a = m
-  a = fca.nextClosure$ a, m, (b)->fca.mClosure b, m, g, relation
-  deepEqual a, ["even"]
+  a = fca.nextClosure m,  m, (b)->fca.mClosure b, m, g, relation
+  equal a, null

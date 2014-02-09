@@ -38,4 +38,5 @@
   (is (set-equal '(1 2) (funcall (rule-based-closure '(((1) . (2)))) '(1)))))
 
 (test next-closure
-  (is (set-equal '(even) (next-closure nil m (rcurry 'm-closure m g 'relation)))))
+  (is (set-equal '(even) (next-closure nil m (rcurry 'm-closure m g 'relation))))
+  (is (set-equal nil     (next-closure m m (rcurry 'm-closure m g 'relation)))))

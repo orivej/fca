@@ -24,9 +24,10 @@ mClosure: (b, m, g, i) ->
   "Closure from B ⊆ M onto M"
   @phiMapping (@psiMapping b, g, i), m, i
 
-nextClosure$: (a, m, l) ->
-  "Next closed set of closure L on A ⊆ M. Mutates A."
+nextClosure: (a, m, l) ->
+  "Next closed set of closure L on A ⊆ M."
   mr = m
+  a = _.clone(a)
   for m1, i in m
     mr = _.rest mr
     j = a.indexOf m1
@@ -34,9 +35,7 @@ nextClosure$: (a, m, l) ->
       # remove m1 from a
       a.splice j, 1
     else
-      aCopy = a.slice()
-      aCopy.push m1
-      b = l aCopy
+      b = l a.concat [m1]
       # if mr ∩ (B \ A) = ∅ return B
       if (_.intersection(mr, _.difference(b, a))).length is 0
         return b
@@ -91,7 +90,7 @@ Return values: implications L, (E, M, I)"
         e1 = options.parse e1
         e.push e1
         module.trigger 'add-example', e1
-    a = @nextClosure$ a, m, @ruleBasedClosure l
+    a = @nextClosure a, m, @ruleBasedClosure l
   l # [e, m, i]
 
 }

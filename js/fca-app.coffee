@@ -89,7 +89,6 @@ App = RC
     @state.model.rules = []
     @setState @state.model
   attributesChanged: (attributes) ->
-    console.log attributes
     cur = @state.model.attributes
     next = _.chain attributes.split('|')
       .map (s) -> s.trim()
