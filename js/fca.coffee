@@ -1,4 +1,4 @@
-# depends on underscore, backbone, iced-runtime
+# depends on underscore, backbone events, iced-runtime
 
 # Formal context (objects G, attributes M, relation L)
 # is modeled as (list, list, list of pairs).
@@ -61,7 +61,6 @@ explore: (e, m, i, options={}) ->
 Initially E is NIL.
 Change E.
 Return values: implications L, (E, M, I)"
-  mod = @
   _.defaults options,
     confirm: module.cps _.bind(confirm, window)
     prompt: module.cps _.bind(prompt, window)

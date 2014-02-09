@@ -77,35 +77,32 @@ App = RC
       RulesList(rules: @state.rules)
     ])
   getInitialState: ->
-    attributes: []
-    examples: []
-    rules: []
-    model:
+    _.clone @model =
       attributes: []
       examples: []
       rules: []
   reset: ->
-    @state.model.examples = []
-    @state.model.rules = []
-    @setState @state.model
+    @model.examples = []
+    @model.rules = []
+    @setState @model
   attributesChanged: (attributes) ->
-    cur = @state.model.attributes
+    cur = @model.attributes
     next = _.chain attributes.split('|')
       .map (s) -> s.trim()
       .without ''
       .uniq()
       .value()
     unless _.isEqual cur, next
-      @state.model.attributes = next
+      @model.attributes = next
       @reset()
   explore: ->
     relation = manualRelation()
     fca.off('add-example').on 'add-example', (g1) =>
-      @state.model.examples.push [g1].concat @state.attributes.map (m1) -> if relation(g1, m1) then '✓' else ''
-      @setState @state.model
+      @model.examples.push [g1].concat @state.attributes.map (m1) -> if relation(g1, m1) then '✓' else ''
+      @setState @model
     fca.off('add-rule').on 'add-rule', (from, to) =>
-      @state.model.rules.push [from, to]
-      @setState @state.model
+      @model.rules.push [from, to]
+      @setState @model
     fca.off('abort').on 'abort', =>
       @reset()
     @reset()

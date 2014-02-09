@@ -73,14 +73,13 @@
       };
     },
     explore: function(e, m, i, options) {
-      var a, ajj, confirmed, e1, l, mod, ___iced_passed_deferral, __iced_deferrals, __iced_k;
+      var a, ajj, confirmed, e1, l, ___iced_passed_deferral, __iced_deferrals, __iced_k;
       __iced_k = __iced_k_noop;
       ___iced_passed_deferral = iced.findDeferral(arguments);
       if (options == null) {
         options = {};
       }
       "E ⊆ M; I is E → M Initially E is NIL. Change E. Return values: implications L, (E, M, I)";
-      mod = this;
       _.defaults(options, {
         confirm: module.cps(_.bind(confirm, window)),
         prompt: module.cps(_.bind(prompt, window)),
@@ -161,7 +160,7 @@ _break()
                               return confirmed = arguments[0];
                             };
                           })(),
-                          lineno: 79
+                          lineno: 78
                         }));
                         __iced_deferrals._fulfill();
                       })(function() {
@@ -184,7 +183,7 @@ _break()
                                     return e1 = arguments[0];
                                   };
                                 })(),
-                                lineno: 85
+                                lineno: 84
                               }));
                               __iced_deferrals._fulfill();
                             })(function() {

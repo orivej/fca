@@ -130,30 +130,25 @@
       ]);
     },
     getInitialState: function() {
-      return {
+      return _.clone(this.model = {
         attributes: [],
         examples: [],
-        rules: [],
-        model: {
-          attributes: [],
-          examples: [],
-          rules: []
-        }
-      };
+        rules: []
+      });
     },
     reset: function() {
-      this.state.model.examples = [];
-      this.state.model.rules = [];
-      return this.setState(this.state.model);
+      this.model.examples = [];
+      this.model.rules = [];
+      return this.setState(this.model);
     },
     attributesChanged: function(attributes) {
       var cur, next;
-      cur = this.state.model.attributes;
+      cur = this.model.attributes;
       next = _.chain(attributes.split('|')).map(function(s) {
         return s.trim();
       }).without('').uniq().value();
       if (!_.isEqual(cur, next)) {
-        this.state.model.attributes = next;
+        this.model.attributes = next;
         return this.reset();
       }
     },
@@ -162,20 +157,20 @@
       relation = manualRelation();
       fca.off('add-example').on('add-example', (function(_this) {
         return function(g1) {
-          _this.state.model.examples.push([g1].concat(_this.state.attributes.map(function(m1) {
+          _this.model.examples.push([g1].concat(_this.state.attributes.map(function(m1) {
             if (relation(g1, m1)) {
               return '✓';
             } else {
               return '';
             }
           })));
-          return _this.setState(_this.state.model);
+          return _this.setState(_this.model);
         };
       })(this));
       fca.off('add-rule').on('add-rule', (function(_this) {
         return function(from, to) {
-          _this.state.model.rules.push([from, to]);
-          return _this.setState(_this.state.model);
+          _this.model.rules.push([from, to]);
+          return _this.setState(_this.model);
         };
       })(this));
       fca.off('abort').on('abort', (function(_this) {
