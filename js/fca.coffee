@@ -42,12 +42,6 @@ nextClosure$: (a, m, l) ->
         return b
   return null
 
-confirmationMessage: (from, to) ->
-  if from.length
-    "If something is #{from}, is it #{to}?"
-  else
-    "Is everything #{to}?"
-
 ruleBasedClosure: (rules) ->
   (b) ->
     changed = true
@@ -63,16 +57,19 @@ cps: (fun) ->
   (args..., cb) ->
     cb fun args...
 
-explore: (e, m, i, options) ->
+explore: (e, m, i, options={}) ->
   "E ⊆ M; I is E → M
 Initially E is NIL.
 Change E.
 Return values: implications L, (E, M, I)"
   mod = @
-  _.extend options,
+  _.defaults options,
     confirm: module.cps _.bind(confirm, window)
     prompt: module.cps _.bind(prompt, window)
     parse: (x) -> x
+    confirmationMessage: (from, to) ->
+      if from.length then "If something is #{from}, is it #{to}?" else "Is everything #{to}?"
+    counterexampleMessage: 'Counterexample:'
   l = []
   a = []
   while a
@@ -81,13 +78,13 @@ Return values: implications L, (E, M, I)"
       if _.isEqual(_.object(a, a), _.object(ajj, ajj))
         break
       ajj = _.difference ajj, a
-      await options.confirm @confirmationMessage(a, ajj), defer confirmed
+      await options.confirm options.confirmationMessage(a, ajj), defer confirmed
       if confirmed
         l.push [a, ajj]
         module.trigger 'add-rule', a, ajj
         break
       else
-        await options.prompt "Counterexample:", defer e1
+        await options.prompt options.counterexampleMessage, defer e1
         e1 = options.parse e1
         e.push e1
         module.trigger 'add-example', e1

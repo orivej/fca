@@ -1,0 +1,12 @@
+body {
+  margin: 20pt auto;
+  width: 80%;
+  background: white;
+  font-family: sans, "DejaVu Sans"; }
+
+table {
+  border-collapse: collapse; }
+
+th, td {
+  border: 1px solid black;
+  text-align: center; }

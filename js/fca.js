@@ -49,13 +49,6 @@
       }
       return null;
     },
-    confirmationMessage: function(from, to) {
-      if (from.length) {
-        return "If something is " + from + ", is it " + to + "?";
-      } else {
-        return "Is everything " + to + "?";
-      }
-    },
     ruleBasedClosure: function(rules) {
       return function(b) {
         var changed, p, q, _i, _len, _ref;
@@ -84,14 +77,25 @@
       var a, ajj, confirmed, e1, l, mod, ___iced_passed_deferral, __iced_deferrals, __iced_k;
       __iced_k = __iced_k_noop;
       ___iced_passed_deferral = iced.findDeferral(arguments);
+      if (options == null) {
+        options = {};
+      }
       "E ⊆ M; I is E → M Initially E is NIL. Change E. Return values: implications L, (E, M, I)";
       mod = this;
-      _.extend(options, {
+      _.defaults(options, {
         confirm: module.cps(_.bind(confirm, window)),
         prompt: module.cps(_.bind(prompt, window)),
         parse: function(x) {
           return x;
-        }
+        },
+        confirmationMessage: function(from, to) {
+          if (from.length) {
+            return "If something is " + from + ", is it " + to + "?";
+          } else {
+            return "Is everything " + to + "?";
+          }
+        },
+        counterexampleMessage: 'Counterexample:'
       });
       l = [];
       a = [];
@@ -152,13 +156,13 @@ _break()
                           parent: ___iced_passed_deferral,
                           filename: "/home/uj/coding/lisp/fca/js/fca.coffee"
                         });
-                        options.confirm(_this.confirmationMessage(a, ajj), __iced_deferrals.defer({
+                        options.confirm(options.confirmationMessage(a, ajj), __iced_deferrals.defer({
                           assign_fn: (function() {
                             return function() {
                               return confirmed = arguments[0];
                             };
                           })(),
-                          lineno: 83
+                          lineno: 80
                         }));
                         __iced_deferrals._fulfill();
                       })(function() {
@@ -175,13 +179,13 @@ _break()
                                 parent: ___iced_passed_deferral,
                                 filename: "/home/uj/coding/lisp/fca/js/fca.coffee"
                               });
-                              options.prompt("Counterexample:", __iced_deferrals.defer({
+                              options.prompt(options.counterexampleMessage, __iced_deferrals.defer({
                                 assign_fn: (function() {
                                   return function() {
                                     return e1 = arguments[0];
                                   };
                                 })(),
-                                lineno: 89
+                                lineno: 86
                               }));
                               __iced_deferrals._fulfill();
                             })(function() {
