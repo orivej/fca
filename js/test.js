@@ -38,7 +38,6 @@
   m = ["even", "odd", "prime"];
 
   test("phi-psi-mapping", function() {
-    console.log(fca.phiMapping([2], m, relation));
     deepEqual(fca.phiMapping([2], m, relation), ["even", "prime"]);
     deepEqual(fca.psiMapping(["odd", "prime"], g, relation), [3, 5]);
     deepEqual(fca.gClosure([1], g, m, relation), [1, 3, 5]);

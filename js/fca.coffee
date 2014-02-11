@@ -1,10 +1,10 @@
-# depends on underscore, backbone events, iced-runtime
+# depends on underscore
 
 # Formal context (objects G, attributes M, relation L)
 # is modeled as (list, list, list of pairs).
 # I is a lambda implementing L.
 
-module = @fca = _.extend {}, Backbone.Events, {
+module = @fca = {
 
 phiMapping: (g, m, i) ->
   "All M1 from full set M that satisfy I for all G1"
@@ -51,46 +51,6 @@ ruleBasedClosure: (rules) ->
           b = _.union(b, q)
           changed = true
     return b
-
-cps: (fun) ->
-  (args..., cb) ->
-    cb fun args...
-
-explore: (e, m, i, options={}) ->
-  "E ⊆ M; I is E → M
-Initially E is NIL.
-Change E.
-Return values: implications L, examples E"
-  _.defaults options,
-    confirm: module.cps _.bind(confirm, window)
-    prompt: module.cps _.bind(prompt, window)
-    parse: (x) -> x
-    confirmationMessage: (from, to) ->
-      if from.length then "If something is #{from}, is it #{to}?" else "Is everything #{to}?"
-    counterexampleMessage: 'Counterexample:'
-  l = []
-  a = []
-  while a
-    while true
-      ajj = @mClosure a, m, e, i
-      if _.isEqual(_.object(a, a), _.object(ajj, ajj))
-        break
-      ajj = _.difference ajj, a
-      await options.confirm options.confirmationMessage(a, ajj), defer confirmed
-      if confirmed
-        l.push [a, ajj]
-        module.trigger 'add-rule', a, ajj
-        break
-      else
-        await options.prompt options.counterexampleMessage, defer e1
-        unless e1
-          module.trigger 'abort'
-          return
-        e1 = options.parse e1
-        e.push e1
-        module.trigger 'add-example', e1
-    a = @nextClosure a, m, @ruleBasedClosure l
-  [l, e]
 
 autoexplore: (e, m, i) ->
   "Derive implications L from a complete set of examples E"

@@ -1,4 +1,3 @@
-B = Backbone
 R = React
 RC = R.createClass
 LinkedState = R.addons.LinkedStateMixin
