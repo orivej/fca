@@ -60,7 +60,7 @@ explore: (e, m, i, options={}) ->
   "E ⊆ M; I is E → M
 Initially E is NIL.
 Change E.
-Return values: implications L, (E, M, I)"
+Return values: implications L, examples E"
   _.defaults options,
     confirm: module.cps _.bind(confirm, window)
     prompt: module.cps _.bind(prompt, window)
@@ -90,6 +90,17 @@ Return values: implications L, (E, M, I)"
         e.push e1
         module.trigger 'add-example', e1
     a = @nextClosure a, m, @ruleBasedClosure l
-  l # [e, m, i]
+  [l, e]
+
+autoexplore: (e, m, i) ->
+  "Derive implications L from a complete set of examples E"
+  l = []
+  a = []
+  while a
+    ajj = @mClosure a, m, e, i
+    unless _.isEqual(_.object(a, a), _.object(ajj, ajj))
+      l.push [a, _.difference(ajj, a)]
+    a = @nextClosure a, m, @ruleBasedClosure l
+  l
 
 }

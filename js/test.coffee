@@ -37,3 +37,17 @@ test "next-closure", ->
   deepEqual a, ["even"]
   a = fca.nextClosure m,  m, (b)->fca.mClosure b, m, g, relation
   equal a, null
+
+test "autoexplore", ->
+  f = (a) -> fca.autoexplore a, m, relation
+  deepEqual f([]), [
+    [[], ["even", "odd", "prime"]]
+  ]
+  deepEqual f([1]), [
+    [[], ["odd"]],
+    [["odd", "even"], ["prime"]],
+    [["prime", "odd"], ["even"]]
+  ]
+  deepEqual f([1,2,3,4]), [
+    [["odd", "even"], ["prime"]]
+  ]

@@ -4,7 +4,7 @@ RC = R.createClass
 LinkedState = R.addons.LinkedStateMixin
 {
   div, ul, li, p,
-  table, caption, tr, th, td,
+  table, caption, thead, tbody, tr, th, td,
   form, label, input, button
 } = R.DOM
 
@@ -13,16 +13,18 @@ delay = (ms, callback) ->
 
 AttributesForm = RC
   render: ->
-    (form {onSubmit: @explore}, [
+    (form {onSubmit: @props.onSubmit}, [
       (label {}, 'Перечислите свойства через "|": '),
-      (input {onChange: @onChange, style: {width: '50%'}, autoFocus: true}),
-      (button {}, 'Исследовать')
+      (input {
+        ref: 'input'
+        onChange: @onChange,
+        style: {width: '70%'},
+        autoFocus: true}),
     ])
-  explore: ->
-    @props.onExplore()
-    false
   onChange: (e) ->
     @props.onAttributesChange e.target.value
+  focus: ->
+    @refs['input'].getDOMNode().focus()
 
 ExamplesHeading = RC
   render: ->
@@ -30,11 +32,37 @@ ExamplesHeading = RC
       (th {}, attr)
     (tr {}, (th {}, ' '), cells)
 
-ExamplesRow = RC
+ExampleRow = RC
   render: ->
-    cells = @props.values.map (val) ->
-      (td {}, val)
-    (tr {}, cells)
+    cells = @props.example.vals.map (val) ->
+      (td {}, (input {type: 'checkbox', disabled: true, checked: val}))
+    (tr {}, [
+      (td {}, @props.example.name)
+      cells
+    ])
+
+ExampleAdd = RC
+  render: ->
+    cells = _(@props.length).times (i) ->
+      (td {}, (input {type: 'checkbox', ref: i}))
+    (tr {onKeyPress: @keyPress, onKeyUp: @keyUp}, [
+      (td {}, (input {ref: 'name'})),
+      cells,
+      (td {}, (button {onClick: @add}, 'Добавить'))
+    ])
+  focus: ->
+    @refs[i].getDOMNode().checked = false for i in [0...@props.length]
+    @refs['name'].getDOMNode().value = ''
+    @refs['name'].getDOMNode().focus()
+  keyPress: (e) ->
+    if e.keyCode == 13 then @add()
+  keyUp: (e) ->
+    if e.keyCode == 27 then @props.onCancel()
+  add: ->
+    @props.onAddExample
+      name: @refs['name'].getDOMNode().value
+      vals: @refs[i].getDOMNode().checked for i in [0...@props.length]
+    @focus()
 
 hideIf = (cond, props) ->
   if cond
@@ -46,12 +74,21 @@ hideIf = (cond, props) ->
 ExamplesTable = RC
   render: ->
     rows = @props.examples.map (example) ->
-      (ExamplesRow values: example)
+      (ExampleRow example: example)
     (table hideIf(not @props.attributes.length), [
       (caption {}, 'Примеры'),
-      (ExamplesHeading attributes: @props.attributes),
-      rows
+      (thead {}, (ExamplesHeading attributes: @props.attributes)),
+      (tbody {}, [
+        rows,
+        (ExampleAdd
+          ref: 'exampleAdd',
+          onAddExample: @props.onAddExample,
+          onCancel: @props.onCancel,
+          length: @props.attributes.length)
+      ])
     ])
+  focusAddExample: ->
+    @refs.exampleAdd.focus()
 
 RulesList = RC
   render: ->
@@ -72,19 +109,26 @@ manualRelation = () ->
 App = RC
   render: ->
     (div {}, [
-      AttributesForm(onAttributesChange: @attributesChanged, onExplore: @explore),
-      ExamplesTable(attributes: @state.attributes, examples: @state.examples),
-      RulesList(rules: @state.rules)
+      AttributesForm(
+        ref: 'attributesForm'
+        onAttributesChange: @attributesChanged,
+        onSubmit: @focusAddExample),
+      ExamplesTable(
+        ref: 'examplesTable'
+        onAddExample: @addExample,
+        onCancel: @focusAttributesForm,
+        attributes: @state.attributes,
+        examples: @state.examples),
+      RulesList(
+        rules: @state.rules)
     ])
   getInitialState: ->
-    _.clone @model =
+    @model =
       attributes: []
       examples: []
+    _.extend {
       rules: []
-  reset: ->
-    @model.examples = []
-    @model.rules = []
-    @setState @model
+    }, @model
   attributesChanged: (attributes) ->
     cur = @model.attributes
     next = _.chain attributes.split('|')
@@ -94,22 +138,21 @@ App = RC
       .value()
     unless _.isEqual cur, next
       @model.attributes = next
-      @reset()
-  explore: ->
-    relation = manualRelation()
-    fca.off('add-example').on 'add-example', (g1) =>
-      @model.examples.push [g1].concat @state.attributes.map (m1) -> if relation(g1, m1) then '✓' else ''
+      @model.examples = []
       @setState @model
-    fca.off('add-rule').on 'add-rule', (from, to) =>
-      @model.rules.push [from, to]
-      @setState @model
-    fca.off('abort').on 'abort', =>
-      @reset()
-    @reset()
-    delay 0, =>
-      fca.explore [], @state.attributes, relation,
-        confirmationMessage: (from, to) ->
-          if from.length then "Если #{from}, то #{to}?" else "Всегда ли #{to}?"
-        counterexampleMessage: 'Контрпример:'
+      @autoexplore()
+  focusAddExample: ->
+    @refs['examplesTable'].focusAddExample()
+    false
+  focusAttributesForm: ->
+    @refs['attributesForm'].focus()
+  addExample: (example) ->
+    @model.examples.push example
+    @setState @model
+    @autoexplore()
+  autoexplore: ->
+    attrIndices = _.invert _.extend {}, @model.attributes
+    @setState rules: fca.autoexplore @model.examples, @model.attributes, (g, m) ->
+      g.vals[attrIndices[m]]
 
 R.renderComponent App(), document.body

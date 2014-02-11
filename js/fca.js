@@ -79,7 +79,7 @@
       if (options == null) {
         options = {};
       }
-      "E ⊆ M; I is E → M Initially E is NIL. Change E. Return values: implications L, (E, M, I)";
+      "E ⊆ M; I is E → M Initially E is NIL. Change E. Return values: implications L, examples E";
       _.defaults(options, {
         confirm: module.cps(_.bind(confirm, window)),
         prompt: module.cps(_.bind(prompt, window)),
@@ -211,9 +211,23 @@ _break()
         });
       })(this)((function(_this) {
         return function() {
-          return l;
+          return [l, e];
         };
       })(this));
+    },
+    autoexplore: function(e, m, i) {
+      "Derive implications L from a complete set of examples E";
+      var a, ajj, l;
+      l = [];
+      a = [];
+      while (a) {
+        ajj = this.mClosure(a, m, e, i);
+        if (!_.isEqual(_.object(a, a), _.object(ajj, ajj))) {
+          l.push([a, _.difference(ajj, a)]);
+        }
+        a = this.nextClosure(a, m, this.ruleBasedClosure(l));
+      }
+      return l;
     }
   });
 

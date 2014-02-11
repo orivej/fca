@@ -40,3 +40,13 @@
 (test next-closure
   (is (set-equal '(even) (next-closure nil m (rcurry 'm-closure m g 'relation))))
   (is (set-equal nil     (next-closure m m (rcurry 'm-closure m g 'relation)))))
+
+(test autoexplore
+  (is (equalp '((() . (even odd prime)))
+              (autoexplore nil m 'relation)))
+  (is (equalp '(((prime odd) . (even))
+                ((even odd) . (prime))
+                (() . (odd)))
+              (autoexplore '(1) m 'relation)))
+  (is (equalp '(((even odd) . (prime)))
+              (autoexplore '(1 2 3 4) m 'relation))))

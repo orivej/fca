@@ -62,4 +62,14 @@
     return equal(a, null);
   });
 
+  test("autoexplore", function() {
+    var f;
+    f = function(a) {
+      return fca.autoexplore(a, m, relation);
+    };
+    deepEqual(f([]), [[[], ["even", "odd", "prime"]]]);
+    deepEqual(f([1]), [[[], ["odd"]], [["odd", "even"], ["prime"]], [["prime", "odd"], ["even"]]]);
+    return deepEqual(f([1, 2, 3, 4]), [[["odd", "even"], ["prime"]]]);
+  });
+
 }).call(this);

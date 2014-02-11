@@ -75,7 +75,7 @@
   "E ⊆ M; J is E → M
 Initially E is NIL.
 Change E.
-Return values: implications L, (E, M, I)"
+Return values: implications L, examples E"
   (let (l)
     (iter
       (with a = nil) ; A enumerates closed sets of m-closure on M, E, I
@@ -87,4 +87,15 @@ Return values: implications L, (E, M, I)"
             (return (push (cons a ajj) l))
             (setf e (user-extend e))))
       (while (setf a (next-closure a m (rule-based-closure l)))))
-    (values l (list e m i))))
+    (values l e)))
+
+(defun autoexplore (e m i)
+  "Derive implications L from a complete set of examples E"
+  (let (l)
+    (iter
+      (with a = nil) ; A enumerates closed sets of m-closure on M, E, I
+      (for ajj = (m-closure a m e i))
+      (unless (set-equal a ajj)
+        (push (cons a (set-difference ajj a)) l))
+      (while (setf a (next-closure a m (rule-based-closure l)))))
+    l))
