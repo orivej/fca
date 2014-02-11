@@ -15,12 +15,7 @@ AttributesForm = RC
   render: ->
     (form {onSubmit: @props.onSubmit}, [
       (label {}, 'Перечислите свойства через "|": '),
-      (input {
-        ref: 'input'
-        onChange: @onChange,
-        style: {width: '70%'},
-        autoFocus: true}),
-    ])
+      (input {ref: 'input', onChange: @onChange, style: {width: '70%'}, autoFocus: true})])
   onChange: (e) ->
     @props.onAttributesChange e.target.value
   focus: ->
@@ -34,17 +29,21 @@ ExamplesHeading = RC
 
 ExampleRow = RC
   render: ->
-    cells = @props.example.vals.map (val) ->
-      (td {}, (input {type: 'checkbox', disabled: true, checked: val}))
+    cells = @props.example.vals.map (val, i) =>
+      (td {}, (input {ref: i, onChange: @onChange, type: 'checkbox', checked: val}))
     (tr {}, [
       (td {}, @props.example.name)
       cells
     ])
+  onChange: (e) ->
+    @props.onChangeExample
+      name: @props.example.name
+      vals: @refs[i].getDOMNode().checked for i in [0...@props.example.vals.length]
 
 ExampleAdd = RC
   render: ->
-    cells = _(@props.length).times (i) ->
-      (td {}, (input {type: 'checkbox', ref: i}))
+    cells = _(@props.length).times (i) =>
+      (td {}, (input {ref: i, type: 'checkbox', onKeyUp: @checkboxKeyUp}))
     (tr {onKeyPress: @keyPress, onKeyUp: @keyUp}, [
       (td {}, (input {ref: 'name'})),
       cells,
@@ -54,12 +53,19 @@ ExampleAdd = RC
     @refs[i].getDOMNode().checked = false for i in [0...@props.length]
     @refs['name'].getDOMNode().value = ''
     @refs['name'].getDOMNode().focus()
-  keyPress: (e) ->
-    if e.keyCode == 13 then @add()
-  keyUp: (e) ->
+  keyPress: (e) -> # Enter.  Do not add twice when Enter on Button
+    if e.keyCode == 13
+      @add()
+      e.preventDefault()
+  keyUp: (e) -> # Esc
     if e.keyCode == 27 then @props.onCancel()
+  checkboxKeyUp: (e) -> # digits
+    if 48 <= e.keyCode <= 57
+      i = (e.keyCode+1) % 10
+      node = @refs[i].getDOMNode()
+      node.checked = not node.checked
   add: ->
-    @props.onAddExample
+    @props.onUpsertExample
       name: @refs['name'].getDOMNode().value
       vals: @refs[i].getDOMNode().checked for i in [0...@props.length]
     @focus()
@@ -73,8 +79,10 @@ hideIf = (cond, props) ->
 
 ExamplesTable = RC
   render: ->
-    rows = @props.examples.map (example) ->
-      (ExampleRow example: example)
+    rows = @props.examples.map (example) =>
+      (ExampleRow
+        onChangeExample: @props.onUpsertExample,
+        example: example)
     (table hideIf(not @props.attributes.length), [
       (caption {}, 'Примеры'),
       (thead {}, (ExamplesHeading attributes: @props.attributes)),
@@ -82,7 +90,7 @@ ExamplesTable = RC
         rows,
         (ExampleAdd
           ref: 'exampleAdd',
-          onAddExample: @props.onAddExample,
+          onUpsertExample: @props.onUpsertExample,
           onCancel: @props.onCancel,
           length: @props.attributes.length)
       ])
@@ -115,7 +123,7 @@ App = RC
         onSubmit: @focusAddExample),
       ExamplesTable(
         ref: 'examplesTable'
-        onAddExample: @addExample,
+        onUpsertExample: @onUpsertExample,
         onCancel: @focusAttributesForm,
         attributes: @state.attributes,
         examples: @state.examples),
@@ -138,7 +146,8 @@ App = RC
       .value()
     unless _.isEqual cur, next
       @model.attributes = next
-      @model.examples = []
+      unless cur.length is next.length
+        @model.examples = []
       @setState @model
       @autoexplore()
   focusAddExample: ->
@@ -146,8 +155,9 @@ App = RC
     false
   focusAttributesForm: ->
     @refs['attributesForm'].focus()
-  addExample: (example) ->
-    @model.examples.push example
+  onUpsertExample: (example) ->
+    old = _.find @model.examples, (x) -> x.name == example.name
+    if old then old.vals = example.vals else @model.examples.push example
     @setState @model
     @autoexplore()
   autoexplore: ->

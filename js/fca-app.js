@@ -52,26 +52,46 @@
   ExampleRow = RC({
     render: function() {
       var cells;
-      cells = this.props.example.vals.map(function(val) {
-        return td({}, input({
-          type: 'checkbox',
-          disabled: true,
-          checked: val
-        }));
-      });
+      cells = this.props.example.vals.map((function(_this) {
+        return function(val, i) {
+          return td({}, input({
+            ref: i,
+            onChange: _this.onChange,
+            type: 'checkbox',
+            checked: val
+          }));
+        };
+      })(this));
       return tr({}, [td({}, this.props.example.name), cells]);
+    },
+    onChange: function(e) {
+      var i;
+      return this.props.onChangeExample({
+        name: this.props.example.name,
+        vals: (function() {
+          var _i, _ref1, _results;
+          _results = [];
+          for (i = _i = 0, _ref1 = this.props.example.vals.length; 0 <= _ref1 ? _i < _ref1 : _i > _ref1; i = 0 <= _ref1 ? ++_i : --_i) {
+            _results.push(this.refs[i].getDOMNode().checked);
+          }
+          return _results;
+        }).call(this)
+      });
     }
   });
 
   ExampleAdd = RC({
     render: function() {
       var cells;
-      cells = _(this.props.length).times(function(i) {
-        return td({}, input({
-          type: 'checkbox',
-          ref: i
-        }));
-      });
+      cells = _(this.props.length).times((function(_this) {
+        return function(i) {
+          return td({}, input({
+            ref: i,
+            type: 'checkbox',
+            onKeyUp: _this.checkboxKeyUp
+          }));
+        };
+      })(this));
       return tr({
         onKeyPress: this.keyPress,
         onKeyUp: this.keyUp
@@ -93,7 +113,8 @@
     },
     keyPress: function(e) {
       if (e.keyCode === 13) {
-        return this.add();
+        this.add();
+        return e.preventDefault();
       }
     },
     keyUp: function(e) {
@@ -101,9 +122,17 @@
         return this.props.onCancel();
       }
     },
+    checkboxKeyUp: function(e) {
+      var i, node, _ref1;
+      if ((48 <= (_ref1 = e.keyCode) && _ref1 <= 57)) {
+        i = (e.keyCode + 1) % 10;
+        node = this.refs[i].getDOMNode();
+        return node.checked = !node.checked;
+      }
+    },
     add: function() {
       var i;
-      this.props.onAddExample({
+      this.props.onUpsertExample({
         name: this.refs['name'].getDOMNode().value,
         vals: (function() {
           var _i, _ref1, _results;
@@ -134,18 +163,21 @@
   ExamplesTable = RC({
     render: function() {
       var rows;
-      rows = this.props.examples.map(function(example) {
-        return ExampleRow({
-          example: example
-        });
-      });
+      rows = this.props.examples.map((function(_this) {
+        return function(example) {
+          return ExampleRow({
+            onChangeExample: _this.props.onUpsertExample,
+            example: example
+          });
+        };
+      })(this));
       return table(hideIf(!this.props.attributes.length), [
         caption({}, 'Примеры'), thead({}, ExamplesHeading({
           attributes: this.props.attributes
         })), tbody({}, [
           rows, ExampleAdd({
             ref: 'exampleAdd',
-            onAddExample: this.props.onAddExample,
+            onUpsertExample: this.props.onUpsertExample,
             onCancel: this.props.onCancel,
             length: this.props.attributes.length
           })
@@ -193,7 +225,7 @@
           onSubmit: this.focusAddExample
         }), ExamplesTable({
           ref: 'examplesTable',
-          onAddExample: this.addExample,
+          onUpsertExample: this.onUpsertExample,
           onCancel: this.focusAttributesForm,
           attributes: this.state.attributes,
           examples: this.state.examples
@@ -219,7 +251,9 @@
       }).without('').uniq().value();
       if (!_.isEqual(cur, next)) {
         this.model.attributes = next;
-        this.model.examples = [];
+        if (cur.length !== next.length) {
+          this.model.examples = [];
+        }
         this.setState(this.model);
         return this.autoexplore();
       }
@@ -231,8 +265,16 @@
     focusAttributesForm: function() {
       return this.refs['attributesForm'].focus();
     },
-    addExample: function(example) {
-      this.model.examples.push(example);
+    onUpsertExample: function(example) {
+      var old;
+      old = _.find(this.model.examples, function(x) {
+        return x.name === example.name;
+      });
+      if (old) {
+        old.vals = example.vals;
+      } else {
+        this.model.examples.push(example);
+      }
       this.setState(this.model);
       return this.autoexplore();
     },
