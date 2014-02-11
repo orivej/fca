@@ -3,7 +3,7 @@ R = React
 RC = R.createClass
 LinkedState = R.addons.LinkedStateMixin
 {
-  div, ul, li, p,
+  div, ul, li, p, small, br,
   table, caption, thead, tbody, tr, th, td,
   form, label, input, button
 } = R.DOM
@@ -25,7 +25,7 @@ ExamplesHeading = RC
   render: ->
     cells = @props.attributes.map (attr) ->
       (th {}, attr)
-    (tr {}, (th {}, ' '), cells)
+    (tr {}, (th {}, 'Пример'), cells)
 
 ExampleRow = RC
   render: ->
@@ -34,20 +34,23 @@ ExampleRow = RC
     (tr {}, [
       (td {}, @props.example.name)
       cells
+      (td {}, (button {onClick: @onDelete, title: 'Удалить'}, '−'))
     ])
   onChange: (e) ->
     @props.onChangeExample
       name: @props.example.name
       vals: @refs[i].getDOMNode().checked for i in [0...@props.example.vals.length]
+  onDelete: (e) ->
+    @props.onDeleteExample @props.example.name
 
 ExampleAdd = RC
   render: ->
     cells = _(@props.length).times (i) =>
       (td {}, (input {ref: i, type: 'checkbox', onKeyUp: @checkboxKeyUp}))
     (tr {onKeyPress: @keyPress, onKeyUp: @keyUp}, [
-      (td {}, (input {ref: 'name'})),
-      cells,
-      (td {}, (button {onClick: @add}, 'Добавить'))
+      (td {}, (input {ref: 'name'}))
+      cells
+      (td {}, (button {onClick: @add, title: 'Добавить'}, '+'))
     ])
   focus: ->
     @refs[i].getDOMNode().checked = false for i in [0...@props.length]
@@ -79,20 +82,27 @@ hideIf = (cond, props) ->
 
 ExamplesTable = RC
   render: ->
-    rows = @props.examples.map (example) =>
+    rows = @props.examples.map (example, i) =>
       (ExampleRow
         onChangeExample: @props.onUpsertExample,
+        onDeleteExample: @props.onDeleteExample,
         example: example)
-    (table hideIf(not @props.attributes.length), [
-      (caption {}, 'Примеры'),
-      (thead {}, (ExamplesHeading attributes: @props.attributes)),
-      (tbody {}, [
-        rows,
-        (ExampleAdd
-          ref: 'exampleAdd',
-          onUpsertExample: @props.onUpsertExample,
-          onCancel: @props.onCancel,
-          length: @props.attributes.length)
+    (div hideIf(not @props.attributes.length), [
+      (p {}, [
+        'Добавляйте примеры, пока все выводы не будут истинны.'
+        (br {})
+        (small {}, 'Предпосылка: все заключения от наличия одного набора свойств к наличию другого истинны, пока не показано обратное.')
+      ])
+      (table {}, [
+        (thead {}, (ExamplesHeading attributes: @props.attributes))
+        (tbody {}, [
+          rows
+          (ExampleAdd
+            ref: 'exampleAdd',
+            onUpsertExample: @props.onUpsertExample,
+            onCancel: @props.onCancel,
+            length: @props.attributes.length)
+        ])
       ])
     ])
   focusAddExample: ->
@@ -101,9 +111,13 @@ ExamplesTable = RC
 RulesList = RC
   render: ->
     items = @props.rules.map ([from, to]) ->
-      (li {}, if from.length then "Если #{from}, то #{to}" else "Всегда #{to}")
+      (li {}, if from.length then "если #{from}, то #{to}" else "всегда #{to}")
     (div hideIf(not items.length), [
-      (p {}, 'Правила'),
+      (p {}, [
+        'Выводы '
+        (br {})
+        (small {}, 'из предпосылки, ограниченной примерами')
+      ])
       (ul {}, items)
     ])
 
@@ -120,13 +134,14 @@ App = RC
       AttributesForm(
         ref: 'attributesForm'
         onAttributesChange: @attributesChanged,
-        onSubmit: @focusAddExample),
+        onSubmit: @focusAddExample)
       ExamplesTable(
         ref: 'examplesTable'
         onUpsertExample: @onUpsertExample,
+        onDeleteExample: @onDeleteExample,
         onCancel: @focusAttributesForm,
         attributes: @state.attributes,
-        examples: @state.examples),
+        examples: @state.examples)
       RulesList(
         rules: @state.rules)
     ])
@@ -160,6 +175,13 @@ App = RC
     if old then old.vals = example.vals else @model.examples.push example
     @setState @model
     @autoexplore()
+  onDeleteExample: (name) ->
+    for x, i in @model.examples
+      if x.name is name
+        @model.examples.splice i, 1
+        @setState @model
+        @autoexplore()
+        break
   autoexplore: ->
     attrIndices = _.invert _.extend {}, @model.attributes
     @setState rules: fca.autoexplore @model.examples, @model.attributes, (g, m) ->
