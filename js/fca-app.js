@@ -61,7 +61,12 @@
         };
       })(this));
       return tr({}, [
-        td({}, this.props.example.name), cells, td({}, button({
+        td({
+          ref: 'name',
+          onBlur: this.onChange,
+          contentEditable: true,
+          spellCheck: false
+        }, this.props.example.name), cells, td({}, button({
           onClick: this.onDelete,
           title: 'Удалить'
         }, '−'))
@@ -70,7 +75,7 @@
     onChange: function(e) {
       var i;
       return this.props.onChangeExample({
-        name: this.props.example.name,
+        name: this.refs['name'].getDOMNode().textContent,
         vals: (function() {
           var _i, _ref1, _results;
           _results = [];
@@ -79,10 +84,10 @@
           }
           return _results;
         }).call(this)
-      });
+      }, this.props.index);
     },
     onDelete: function(e) {
-      return this.props.onDeleteExample(this.props.example.name);
+      return this.props.onDeleteExample(this.props.index);
     }
   });
 
@@ -175,7 +180,8 @@
           return ExampleRow({
             onChangeExample: _this.props.onUpsertExample,
             onDeleteExample: _this.props.onDeleteExample,
-            example: example
+            example: example,
+            index: i
           });
         };
       })(this));
@@ -283,39 +289,23 @@
     focusAttributesForm: function() {
       return this.refs['attributesForm'].focus();
     },
-    onUpsertExample: function(example) {
-      var old;
-      old = _.find(this.model.examples, function(x) {
-        return x.name === example.name;
-      });
-      if (old) {
-        old.vals = example.vals;
+    onUpsertExample: function(example, index) {
+      if (index != null) {
+        _.extend(this.model.examples[index], example);
       } else {
         this.model.examples.push(example);
       }
       this.setState(this.model);
       return this.autoexplore();
     },
-    onDeleteExample: function(name) {
-      var i, x, _i, _len, _ref1, _results;
-      _ref1 = this.model.examples;
-      _results = [];
-      for (i = _i = 0, _len = _ref1.length; _i < _len; i = ++_i) {
-        x = _ref1[i];
-        if (x.name === name) {
-          this.model.examples.splice(i, 1);
-          this.setState(this.model);
-          this.autoexplore();
-          break;
-        } else {
-          _results.push(void 0);
-        }
-      }
-      return _results;
+    onDeleteExample: function(index) {
+      this.model.examples.splice(index, 1);
+      this.setState(this.model);
+      return this.autoexplore();
     },
     autoexplore: function() {
       var attrIndices;
-      attrIndices = _.invert(_.extend({}, this.model.attributes));
+      attrIndices = _.invert(this.model.attributes);
       return this.setState({
         rules: fca.autoexplore(this.model.examples, this.model.attributes, function(g, m) {
           return g.vals[attrIndices[m]];

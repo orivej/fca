@@ -31,16 +31,17 @@ ExampleRow = RC
     cells = @props.example.vals.map (val, i) =>
       (td {}, (input {ref: i, onChange: @onChange, type: 'checkbox', checked: val}))
     (tr {}, [
-      (td {}, @props.example.name)
+      (td {ref: 'name',  onBlur: @onChange, contentEditable: true, spellCheck: false}, @props.example.name)
       cells
       (td {}, (button {onClick: @onDelete, title: 'Удалить'}, '−'))
     ])
   onChange: (e) ->
-    @props.onChangeExample
-      name: @props.example.name
+    @props.onChangeExample {
+      name: @refs['name'].getDOMNode().textContent
       vals: @refs[i].getDOMNode().checked for i in [0...@props.example.vals.length]
+    }, @props.index
   onDelete: (e) ->
-    @props.onDeleteExample @props.example.name
+    @props.onDeleteExample @props.index
 
 ExampleAdd = RC
   render: ->
@@ -85,7 +86,8 @@ ExamplesTable = RC
       (ExampleRow
         onChangeExample: @props.onUpsertExample,
         onDeleteExample: @props.onDeleteExample,
-        example: example)
+        example: example,
+        index: i)
     (div hideIf(not @props.attributes.length), [
       (p {}, [
         'Добавляйте примеры, пока все выводы не будут истинны.'
@@ -175,20 +177,19 @@ App = RC
     false
   focusAttributesForm: ->
     @refs['attributesForm'].focus()
-  onUpsertExample: (example) ->
-    old = _.find @model.examples, (x) -> x.name == example.name
-    if old then old.vals = example.vals else @model.examples.push example
+  onUpsertExample: (example, index) ->
+    if index?
+      _.extend @model.examples[index], example
+    else
+      @model.examples.push example
     @setState @model
     @autoexplore()
-  onDeleteExample: (name) ->
-    for x, i in @model.examples
-      if x.name is name
-        @model.examples.splice i, 1
-        @setState @model
-        @autoexplore()
-        break
+  onDeleteExample: (index) ->
+    @model.examples.splice index, 1
+    @setState @model
+    @autoexplore()
   autoexplore: ->
-    attrIndices = _.invert _.extend {}, @model.attributes
+    attrIndices = _.invert @model.attributes
     @setState rules: fca.autoexplore @model.examples, @model.attributes, (g, m) ->
       g.vals[attrIndices[m]]
 
