@@ -207,7 +207,13 @@
         from = _arg[0], to = _arg[1];
         return li({}, from.length ? "если " + from + ", то " + to : "всегда " + to);
       });
-      return div(hideIf(!items.length), [p({}, ['Выводы ', br({}), small({}, 'из предпосылки, ограниченной примерами')]), ul({}, items)]);
+      return div(hideIf(!this.props.show), [
+        p({}, ['Выводы ', br({}), small({}, 'из предпосылки, ограниченной примерами')]), items.length ? ul({}, items) : p({
+          style: {
+            'font-style': 'italic'
+          }
+        }, ['Больше ничего вывести нельзя.'])
+      ]);
     }
   });
 
@@ -241,7 +247,8 @@
           attributes: this.state.attributes,
           examples: this.state.examples
         }), RulesList({
-          rules: this.state.rules
+          rules: this.state.rules,
+          show: this.state.attributes.length
         })
       ]);
     },

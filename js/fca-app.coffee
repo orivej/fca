@@ -111,13 +111,18 @@ RulesList = RC
   render: ->
     items = @props.rules.map ([from, to]) ->
       (li {}, if from.length then "если #{from}, то #{to}" else "всегда #{to}")
-    (div hideIf(not items.length), [
+    (div hideIf(not @props.show), [
       (p {}, [
         'Выводы '
         (br {})
         (small {}, 'из предпосылки, ограниченной примерами')
       ])
-      (ul {}, items)
+      if items.length
+        (ul {}, items)
+      else
+        (p {style: {'font-style': 'italic'}}, [
+          'Больше ничего вывести нельзя.'
+        ])
     ])
 
 manualRelation = () ->
@@ -142,7 +147,8 @@ App = RC
         attributes: @state.attributes,
         examples: @state.examples)
       RulesList(
-        rules: @state.rules)
+        rules: @state.rules
+        show: @state.attributes.length)
     ])
   getInitialState: ->
     @model =
