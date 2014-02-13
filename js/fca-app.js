@@ -25,7 +25,8 @@
           style: {
             width: '70%'
           },
-          autoFocus: true
+          autoFocus: true,
+          type: 'search'
         })
       ]);
     },
@@ -207,19 +208,70 @@
 
   RulesList = RC({
     render: function() {
-      var items;
-      items = this.props.rules.map(function(_arg) {
+      var addRule, curRuleKeys, describeRule, items, lostRuleKeys;
+      curRuleKeys = this.props.rules.map(function(rule) {
+        return JSON.stringify(rule);
+      });
+      lostRuleKeys = _.difference(_.keys(this.model.confirmedRules), curRuleKeys);
+      describeRule = function(_arg) {
         var from, to;
         from = _arg[0], to = _arg[1];
-        return li({}, from.length ? "если " + from + ", то " + to : "всегда " + to);
-      });
+        if (from.length) {
+          return "если " + from + ", то " + to;
+        } else {
+          return "всегда " + to;
+        }
+      };
+      items = [];
+      addRule = (function(_this) {
+        return function(key, rule, className) {
+          return items.push(li({
+            className: className,
+            onClick: function() {
+              return _this.toggleConfirmed(key, rule);
+            }
+          }, [R.DOM.i({}), describeRule(rule)]));
+        };
+      })(this);
+      _.each(lostRuleKeys, (function(_this) {
+        return function(key) {
+          var rule;
+          rule = _this.model.confirmedRules[key];
+          return addRule(key, rule, 'lost rule');
+        };
+      })(this));
+      _.each(this.props.rules, (function(_this) {
+        return function(rule, i) {
+          var key;
+          key = curRuleKeys[i];
+          return addRule(key, rule, _.has(_this.model.confirmedRules, key) ? 'confirmed rule' : 'rule');
+        };
+      })(this));
       return div(hideIf(!this.props.show), [
-        p({}, ['Выводы ', br({}), small({}, 'из предпосылки, ограниченной примерами')]), items.length ? ul({}, items) : p({
+        p({}, ['Выводы ', br({}), small({}, 'из предпосылки, ограниченной примерами')]), items.length ? ul({
+          className: 'rules'
+        }, items) : p({
           style: {
             'font-style': 'italic'
           }
         }, ['Больше ничего вывести нельзя.'])
       ]);
+    },
+    getInitialState: function() {
+      return this.model = {
+        confirmedRules: {}
+      };
+    },
+    reset: function() {
+      return this.setState(this.getInitialState());
+    },
+    toggleConfirmed: function(key, rule) {
+      if (_.has(this.model.confirmedRules, key)) {
+        delete this.model.confirmedRules[key];
+      } else {
+        this.model.confirmedRules[key] = rule;
+      }
+      return this.setState(this.model);
     }
   });
 
@@ -253,6 +305,7 @@
           attributes: this.state.attributes,
           examples: this.state.examples
         }), RulesList({
+          ref: 'rulesList',
           rules: this.state.rules,
           show: this.state.attributes.length
         })
@@ -274,6 +327,7 @@
         return s.trim();
       }).without('').uniq().value();
       if (!_.isEqual(cur, next)) {
+        this.refs['rulesList'].reset();
         this.model.attributes = next;
         if (cur.length !== next.length) {
           this.model.examples = [];

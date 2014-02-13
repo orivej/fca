@@ -1,3 +1,6 @@
+$fa-font-path: "lib/font-awesome-4.0.3/fonts"
+@import lib/font-awesome-4.0.3/scss/font-awesome
+
 body
   :margin 20pt auto
   :width 80%
@@ -10,3 +13,19 @@ table
 th, td
   :border 1px solid black
   :text-align center
+
+ul.rules
+  @extend .fa-ul
+  :cursor pointer
+  i
+    @extend .fa, .fa-li, .fa-circle-o
+    :line-height inherit
+  .confirmed i
+    @extend .fa-check
+    :color #1cb841
+  .lost
+    span
+      :text-decoration line-through
+    i
+      @extend .fa-exclamation-circle
+      :color #ca3c3c

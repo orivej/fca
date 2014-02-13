@@ -14,7 +14,7 @@ AttributesForm = RC
   render: ->
     (form {onSubmit: @props.onSubmit}, [
       (label {}, 'Перечислите свойства через "|": '),
-      (input {ref: 'input', onChange: @onChange, style: {width: '70%'}, autoFocus: true})])
+      (input {ref: 'input', onChange: @onChange, style: {width: '70%'}, autoFocus: true, type: 'search'})])
   onChange: (e) ->
     @props.onAttributesChange e.target.value
   focus: ->
@@ -31,7 +31,7 @@ ExampleRow = RC
     cells = @props.example.vals.map (val, i) =>
       (td {}, (input {ref: i, onChange: @onChange, type: 'checkbox', checked: val}))
     (tr {}, [
-      (td {ref: 'name',  onBlur: @onChange, contentEditable: true, spellCheck: false}, @props.example.name)
+      (td {ref: 'name', onBlur: @onChange, contentEditable: true, spellCheck: false}, @props.example.name)
       cells
       (td {}, (button {onClick: @onDelete, title: 'Удалить'}, '−'))
     ])
@@ -111,8 +111,21 @@ ExamplesTable = RC
 
 RulesList = RC
   render: ->
-    items = @props.rules.map ([from, to]) ->
-      (li {}, if from.length then "если #{from}, то #{to}" else "всегда #{to}")
+    curRuleKeys = @props.rules.map (rule) -> JSON.stringify rule
+    lostRuleKeys = _.difference _.keys(@model.confirmedRules), curRuleKeys
+    describeRule = ([from, to]) -> if from.length then "если #{from}, то #{to}" else "всегда #{to}"
+    items = []
+    addRule = (key, rule, className) =>
+      items.push (li {className: className, onClick: => @toggleConfirmed key, rule}, [
+        (R.DOM.i {})
+        describeRule rule
+      ])
+    _.each lostRuleKeys, (key) =>
+      rule = @model.confirmedRules[key]
+      addRule key, rule, 'lost rule'
+    _.each @props.rules, (rule, i) =>
+      key = curRuleKeys[i]
+      addRule key, rule, if _.has(@model.confirmedRules, key) then 'confirmed rule' else 'rule'
     (div hideIf(not @props.show), [
       (p {}, [
         'Выводы '
@@ -120,12 +133,23 @@ RulesList = RC
         (small {}, 'из предпосылки, ограниченной примерами')
       ])
       if items.length
-        (ul {}, items)
+        (ul {className: 'rules'}, items)
       else
         (p {style: {'font-style': 'italic'}}, [
           'Больше ничего вывести нельзя.'
         ])
     ])
+  getInitialState: ->
+    @model =
+      confirmedRules: {}
+  reset: ->
+    @setState @getInitialState()
+  toggleConfirmed: (key, rule) ->
+    if _.has @model.confirmedRules, key
+      delete @model.confirmedRules[key]
+    else
+      @model.confirmedRules[key] = rule
+    @setState @model
 
 manualRelation = () ->
   cache = {}
@@ -149,6 +173,7 @@ App = RC
         attributes: @state.attributes,
         examples: @state.examples)
       RulesList(
+        ref: 'rulesList'
         rules: @state.rules
         show: @state.attributes.length)
     ])
@@ -167,6 +192,7 @@ App = RC
       .uniq()
       .value()
     unless _.isEqual cur, next
+      @refs['rulesList'].reset()
       @model.attributes = next
       unless cur.length is next.length
         @model.examples = []
