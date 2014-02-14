@@ -223,11 +223,7 @@
         return JSON.stringify(rule);
       });
       lostRuleKeys = _.difference(_.keys(this.model.confirmedRules), curRuleKeys);
-      items = [];
-      attributes = this.props.attributes;
-      if (this.props.autoNegate.get()) {
-        attributes = negateAttributes(attributes);
-      }
+      attributes = negateAttributes(this.props.attributes);
       attrText = function(attrs) {
         return attrs.map(function(attr) {
           return attributes[attr];
@@ -242,6 +238,7 @@
           return "всегда " + (attrText(to));
         }
       };
+      items = [];
       addRule = (function(_this) {
         return function(key, rule, className) {
           var boundary, cells, from, ruleNode, to;

@@ -118,13 +118,11 @@ RulesList = RC
   render: ->
     curRuleKeys = @props.rules.map (rule) -> JSON.stringify rule
     lostRuleKeys = _.difference _.keys(@model.confirmedRules), curRuleKeys
-    items = []
-    attributes = @props.attributes
-    if @props.autoNegate.get()
-      attributes = negateAttributes attributes
+    attributes = negateAttributes @props.attributes
     attrText = (attrs) -> attrs.map (attr) -> attributes[attr]
     describeRule = ([from, to]) ->
       if from.length then "если #{attrText from}, то #{attrText to}" else "всегда #{attrText to}"
+    items = []
     addRule = (key, rule, className) =>
       ruleNode = (span {className: className + ' rule', onClick: => @toggleConfirmed key, rule}, icon(className), describeRule(rule))
       if not @state.tableView
