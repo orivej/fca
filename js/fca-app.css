@@ -216,7 +216,7 @@
 .fa-th-list:before {
   content: "\f00b"; }
 
-.fa-check:before, .icon.confirmed:before {
+.fa-check:before, .icon.true:before, .icon.confirmed:before {
   content: "\f00c"; }
 
 .fa-times:before {
@@ -382,7 +382,7 @@
 .fa-share-square-o:before {
   content: "\f045"; }
 
-.fa-check-square-o:before, .icon.true:before {
+.fa-check-square-o:before {
   content: "\f046"; }
 
 .fa-arrows:before {
@@ -451,7 +451,7 @@
 .fa-check-circle-o:before {
   content: "\f05d"; }
 
-.fa-ban:before {
+.fa-ban:before, .icon.false:before {
   content: "\f05e"; }
 
 .fa-arrow-left:before {
@@ -610,7 +610,7 @@
 .fa-phone:before {
   content: "\f095"; }
 
-.fa-square-o:before, .icon.false:before {
+.fa-square-o:before {
   content: "\f096"; }
 
 .fa-bookmark-o:before {
@@ -1351,6 +1351,10 @@ th, td {
 
 .icon {
   line-height: inherit; }
+  .icon.true {
+    color: green; }
+  .icon.false {
+    color: green; }
   .icon.confirmed {
     color: #1cb841; }
   .icon.lost {

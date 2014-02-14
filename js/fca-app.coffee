@@ -189,15 +189,16 @@ RulesList = RC
           'Больше ничего вывести нельзя.'
         ])
     ])
-  getInitialState: ->
+  getInitialModel: ->
     @model =
       confirmedRules: {}
+  getInitialState: ->
     _.extend {
       tableView: false
       confirmedBelow: false
-    }, @model
+    }, @getInitialModel()
   reset: ->
-    @setState @getInitialState()
+    @setState @getInitialModel()
   toggleConfirmed: (key, rule) ->
     if _.has @model.confirmedRules, key
       delete @model.confirmedRules[key]

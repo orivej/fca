@@ -348,17 +348,19 @@
         }, ['Больше ничего вывести нельзя.'])
       ]);
     },
-    getInitialState: function() {
-      this.model = {
+    getInitialModel: function() {
+      return this.model = {
         confirmedRules: {}
       };
+    },
+    getInitialState: function() {
       return _.extend({
         tableView: false,
         confirmedBelow: false
-      }, this.model);
+      }, this.getInitialModel());
     },
     reset: function() {
-      return this.setState(this.getInitialState());
+      return this.setState(this.getInitialModel());
     },
     toggleConfirmed: function(key, rule) {
       if (_.has(this.model.confirmedRules, key)) {

@@ -23,13 +23,17 @@ th, td
 .small
   :font-size 80%
 
+$seq-color: green
+
 .icon
   @extend .fa
   :line-height inherit
   &.true
-    @extend .fa-check-square-o
+    @extend .fa-check
+    :color $seq-color
   &.false
-    @extend .fa-square-o
+    @extend .fa-ban
+    :color $seq-color
   &.unconfirmed
     @extend .fa-circle-o
   &.confirmed
