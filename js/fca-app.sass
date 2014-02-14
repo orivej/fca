@@ -14,18 +14,50 @@ th, td
   :border 1px solid black
   :text-align center
 
-ul.rules
-  @extend .fa-ul
-  :cursor pointer
-  i
-    @extend .fa, .fa-li, .fa-circle-o
-    :line-height inherit
-  .confirmed i
+.autocol
+  :display inline-block
+  :vertical-align top
+  :width auto
+  :margin-right 1em
+
+.small
+  :font-size 80%
+
+.icon
+  @extend .fa
+  :line-height inherit
+  &.true
+    @extend .fa-check-square-o
+  &.false
+    @extend .fa-square-o
+  &.unconfirmed
+    @extend .fa-circle-o
+  &.confirmed
     @extend .fa-check
     :color #1cb841
-  .lost
+  &.lost
+    @extend .fa-exclamation-circle
+    :color #ca3c3c
+
+
+ul.rules
+  @extend .fa-ul
+  :margin-top 0
+  i
+    @extend .fa-li
+
+table.rules
+  th:last-child, td:last-child
+    :border none
+    :padding-right 0.5em
+    :position  relative
+    :text-align left
+    .icon
+      :width 2.14286em
+      :text-align center
+
+.rule
+  :cursor pointer
+  &.lost
     span
       :text-decoration line-through
-    i
-      @extend .fa-exclamation-circle
-      :color #ca3c3c

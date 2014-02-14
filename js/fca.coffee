@@ -8,6 +8,7 @@ module = @fca = {
 
 phiMapping: (g, m, i) ->
   "All M1 from full set M that satisfy I for all G1"
+  # complexity: |G|*|M|
   _.filter m, (m1) ->
     _.every g, (g1) ->
       i(g1, m1)
@@ -22,10 +23,12 @@ gClosure: (a, g, m, i) ->
 
 mClosure: (b, m, g, i) ->
   "Closure from B ⊆ M onto M"
+  # complexity: |G|*|M|
   @phiMapping (@psiMapping b, g, i), m, i
 
 nextClosure: (a, m, l) ->
   "Next closed set of closure L on A ⊆ M."
+  # complexity: |M|^2 (reducible to |M|log|M|)
   mr = m
   a = _.clone(a)
   for m1, i in m

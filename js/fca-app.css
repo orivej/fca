@@ -11,7 +11,7 @@
   font-weight: normal;
   font-style: normal; }
 
-.fa, ul.rules i {
+.fa, .icon {
   display: inline-block;
   font-family: FontAwesome;
   font-style: normal;
@@ -69,9 +69,9 @@
 .pull-left {
   float: left; }
 
-.fa.pull-left, ul.rules i.pull-left {
+.fa.pull-left, .pull-left.icon {
   margin-right: .3em; }
-.fa.pull-right, ul.rules i.pull-right {
+.fa.pull-right, .pull-right.icon {
   margin-left: .3em; }
 
 .fa-spin {
@@ -216,7 +216,7 @@
 .fa-th-list:before {
   content: "\f00b"; }
 
-.fa-check:before, ul.rules .confirmed i:before {
+.fa-check:before, .icon.confirmed:before {
   content: "\f00c"; }
 
 .fa-times:before {
@@ -382,7 +382,7 @@
 .fa-share-square-o:before {
   content: "\f045"; }
 
-.fa-check-square-o:before {
+.fa-check-square-o:before, .icon.true:before {
   content: "\f046"; }
 
 .fa-arrows:before {
@@ -485,7 +485,7 @@
 .fa-asterisk:before {
   content: "\f069"; }
 
-.fa-exclamation-circle:before, ul.rules .lost i:before {
+.fa-exclamation-circle:before, .icon.lost:before {
   content: "\f06a"; }
 
 .fa-gift:before {
@@ -610,7 +610,7 @@
 .fa-phone:before {
   content: "\f095"; }
 
-.fa-square-o:before {
+.fa-square-o:before, .icon.false:before {
   content: "\f096"; }
 
 .fa-bookmark-o:before {
@@ -921,7 +921,7 @@
 .fa-mobile:before {
   content: "\f10b"; }
 
-.fa-circle-o:before, ul.rules i:before {
+.fa-circle-o:before, .icon.unconfirmed:before {
   content: "\f10c"; }
 
 .fa-quote-left:before {
@@ -1340,13 +1340,35 @@ th, td {
   border: 1px solid black;
   text-align: center; }
 
-ul.rules {
-  cursor: pointer; }
-  ul.rules i {
-    line-height: inherit; }
-  ul.rules .confirmed i {
+.autocol {
+  display: inline-block;
+  vertical-align: top;
+  width: auto;
+  margin-right: 1em; }
+
+.small {
+  font-size: 80%; }
+
+.icon {
+  line-height: inherit; }
+  .icon.confirmed {
     color: #1cb841; }
-  ul.rules .lost span {
-    text-decoration: line-through; }
-  ul.rules .lost i {
+  .icon.lost {
     color: #ca3c3c; }
+
+ul.rules {
+  margin-top: 0; }
+
+table.rules th:last-child, table.rules td:last-child {
+  border: none;
+  padding-right: 0.5em;
+  position: relative;
+  text-align: left; }
+  table.rules th:last-child .icon, table.rules td:last-child .icon {
+    width: 2.14286em;
+    text-align: center; }
+
+.rule {
+  cursor: pointer; }
+  .rule.lost span {
+    text-decoration: line-through; }

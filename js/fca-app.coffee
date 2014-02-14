@@ -1,14 +1,19 @@
 R = React
 RC = R.createClass
-LinkedState = R.addons.LinkedStateMixin
 {
-  div, ul, li, p, small, br,
+  div, ul, li, p, span, small, br,
   table, caption, thead, tbody, tr, th, td,
   form, label, input, button
 } = R.DOM
 
 delay = (ms, callback) ->
   setTimeout callback, ms
+
+negateAttributes = (attributes) ->
+  attributes.concat attributes.map (attr) -> "не #{attr}"
+
+icon = (className) ->
+  (R.DOM.i {className: 'icon ' + className})
 
 AttributesForm = RC
   render: ->
@@ -113,27 +118,72 @@ RulesList = RC
   render: ->
     curRuleKeys = @props.rules.map (rule) -> JSON.stringify rule
     lostRuleKeys = _.difference _.keys(@model.confirmedRules), curRuleKeys
-    describeRule = ([from, to]) -> if from.length then "если #{from}, то #{to}" else "всегда #{to}"
     items = []
+    attributes = @props.attributes
+    if @props.autoNegate.get()
+      attributes = negateAttributes attributes
+    attrText = (attrs) -> attrs.map (attr) -> attributes[attr]
+    describeRule = ([from, to]) ->
+      if from.length then "если #{attrText from}, то #{attrText to}" else "всегда #{attrText to}"
     addRule = (key, rule, className) =>
-      items.push (li {className: className, onClick: => @toggleConfirmed key, rule}, [
-        (R.DOM.i {})
-        describeRule rule
-      ])
+      ruleNode = (span {className: className + ' rule', onClick: => @toggleConfirmed key, rule}, icon(className), describeRule(rule))
+      if not @state.tableView
+        items.push (li {}, ruleNode)
+      else
+        boundary = @props.attributes.length
+        cells = _.map _.range(boundary), -> []
+        [from, to] = rule
+        _.each from, (i) ->
+          cells[i % boundary].push (input {type: 'checkbox', checked: i < boundary})
+        _.each to, (i) ->
+          cells[i % boundary].push (icon if i < boundary then 'true' else 'false')
+        items.push (tr {}, [
+          cells.map (cell) -> (td {}, cell)
+          (td {}, ruleNode)
+        ])
+
     _.each lostRuleKeys, (key) =>
       rule = @model.confirmedRules[key]
-      addRule key, rule, 'lost rule'
+      addRule key, rule, 'lost'
+
+    confirmedRuleKeys = []
     _.each @props.rules, (rule, i) =>
       key = curRuleKeys[i]
-      addRule key, rule, if _.has(@model.confirmedRules, key) then 'confirmed rule' else 'rule'
-    (div hideIf(not @props.show), [
-      (p {}, [
+      confirmed = _.has(@model.confirmedRules, key)
+      if confirmed and @state.confirmedBelow
+        confirmedRuleKeys.push [key]
+      else
+        addRule key, rule, if confirmed then 'confirmed' else 'unconfirmed'
+
+    _.each confirmedRuleKeys, (key) =>
+      rule = @model.confirmedRules[key]
+      addRule key, rule, 'confirmed'
+
+    option = (text, checked, onChange) ->
+      (label {className: 'small'}, (input {type: 'checkbox', checked: checked, onChange: onChange}), text)
+
+    (div hideIf(not @props.attributes.length), [
+      (p {className: 'autocol'}, [
         'Выводы '
         (br {})
         (small {}, 'из предпосылки, ограниченной примерами')
       ])
+      (p {className: 'autocol'}, [
+        option 'показывать выводы в виде таблицы', @state.tableView, (e) => @setState(tableView: e.target.checked)
+        (br {})
+        option 'показывать подтверждённые выводы в конце', @state.confirmedBelow, (e) => @setState(confirmedBelow: e.target.checked)
+      ])
+      (p {className: 'autocol'}, [
+        option 'делать выводы из отсутсвия свойств', @props.autoNegate.get(), @props.autoNegate.set
+      ])
       if items.length
-        (ul {className: 'rules'}, items)
+        if @state.tableView
+          (table {className: 'rules'}, [
+            (thead {}, (@props.attributes.map (attr) -> (th {}, attr)), (th {}))
+            (tbody {}, items)
+          ])
+        else
+          (ul {className: 'rules'}, items)
       else
         (p {style: {'font-style': 'italic'}}, [
           'Больше ничего вывести нельзя.'
@@ -142,6 +192,10 @@ RulesList = RC
   getInitialState: ->
     @model =
       confirmedRules: {}
+    _.extend {
+      tableView: false
+      confirmedBelow: false
+    }, @model
   reset: ->
     @setState @getInitialState()
   toggleConfirmed: (key, rule) ->
@@ -160,27 +214,33 @@ manualRelation = () ->
 
 App = RC
   render: ->
-    (div {}, [
-      AttributesForm(
+    div {},
+      AttributesForm
         ref: 'attributesForm'
         onAttributesChange: @attributesChanged,
-        onSubmit: @focusAddExample)
-      ExamplesTable(
+        onSubmit: @focusAddExample
+      ExamplesTable
         ref: 'examplesTable'
         onUpsertExample: @onUpsertExample,
         onDeleteExample: @onDeleteExample,
         onCancel: @focusAttributesForm,
         attributes: @state.attributes,
-        examples: @state.examples)
-      RulesList(
+        examples: @state.examples
+      RulesList
         ref: 'rulesList'
+        attributes: @state.attributes
         rules: @state.rules
-        show: @state.attributes.length)
-    ])
+        autoNegate:
+          get: => @state.autoNegate
+          set: (e) =>
+            @model.autoNegate = e.target.checked
+            @setState @model
+            @autoexplore()
   getInitialState: ->
     @model =
       attributes: []
       examples: []
+      autoNegate: false
     _.extend {
       rules: []
     }, @model
@@ -215,8 +275,15 @@ App = RC
     @setState @model
     @autoexplore()
   autoexplore: ->
-    attrIndices = _.invert @model.attributes
-    @setState rules: fca.autoexplore @model.examples, @model.attributes, (g, m) ->
-      g.vals[attrIndices[m]]
+    if @model.autoNegate
+      attributes = negateAttributes @model.attributes
+      boundary = @model.attributes.length
+      rules = fca.autoexplore @model.examples, _.range(attributes.length), (g, m) ->
+        (g.vals[m % boundary]) ^ (m >= boundary)
+      rules = _.filter rules, ([from, to]) ->
+        not _.intersection(from, _.map(from, (i) -> i-boundary)).length
+    else
+      rules = fca.autoexplore @model.examples, _.range(@model.attributes.length), (g, m) -> g.vals[m]
+    @setState rules: rules
 
 R.renderComponent App(), document.body
