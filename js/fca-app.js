@@ -336,9 +336,11 @@
         }, [option('делать выводы из отсутсвия свойств', this.props.autoNegate.get(), this.props.autoNegate.set)]), items.length ? this.state.tableView ? table({
           className: 'rules'
         }, [
-          thead({}, this.props.attributes.map(function(attr) {
-            return th({}, attr);
-          }), th({})), tbody({}, items)
+          thead({}, tr({}, [
+            this.props.attributes.map(function(attr) {
+              return th({}, attr);
+            }), th({})
+          ])), tbody({}, items)
         ]) : ul({
           className: 'rules'
         }, items) : p({

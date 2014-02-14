@@ -179,7 +179,10 @@ RulesList = RC
       if items.length
         if @state.tableView
           (table {className: 'rules'}, [
-            (thead {}, (@props.attributes.map (attr) -> (th {}, attr)), (th {}))
+            (thead {}, (tr {}, [
+              (@props.attributes.map (attr) -> (th {}, attr))
+              (th {})
+            ]))
             (tbody {}, items)
           ])
         else
