@@ -254,10 +254,10 @@ App = RC
       .uniq()
       .value()
     unless _.isEqual cur, next
-      @refs['rulesList'].reset()
       @model.attributes = next
       unless cur.length is next.length
         @model.examples = []
+        @refs['rulesList'].reset()
       @setState @model
       @autoexplore()
   focusAddExample: ->

@@ -436,10 +436,10 @@
         return s.trim();
       }).without('').uniq().value();
       if (!_.isEqual(cur, next)) {
-        this.refs['rulesList'].reset();
         this.model.attributes = next;
         if (cur.length !== next.length) {
           this.model.examples = [];
+          this.refs['rulesList'].reset();
         }
         this.setState(this.model);
         return this.autoexplore();
