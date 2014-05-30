@@ -6,9 +6,6 @@ RC = R.createClass
   form, label, input, button
 } = R.DOM
 
-delay = (ms, callback) ->
-  setTimeout callback, ms
-
 negateAttributes = (attributes) ->
   attributes.concat attributes.map (attr) -> "не #{attr}"
 
@@ -29,7 +26,7 @@ ExamplesHeading = RC
   render: ->
     cells = @props.attributes.map (attr) ->
       (th {}, attr)
-    (tr {}, (th {}, 'Пример'), cells)
+    (tr {}, (th {contentEditable: true}, 'Пример'), cells)
 
 ExampleRow = RC
   render: ->
@@ -119,7 +116,10 @@ RulesList = RC
     curRuleKeys = @props.rules.map (rule) -> JSON.stringify rule
     lostRuleKeys = _.difference _.keys(@model.confirmedRules), curRuleKeys
     attributes = negateAttributes @props.attributes
-    attrText = (attrs) -> attrs.map (attr) -> attributes[attr]
+    attrText = (attrs) ->
+      attrs
+      .map (attr) -> attributes[attr]
+      .join ', '
     describeRule = ([from, to]) ->
       if from.length then "если #{attrText from}, то #{attrText to}" else "всегда #{attrText to}"
     items = []
