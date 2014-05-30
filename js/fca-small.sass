@@ -1,0 +1,83 @@
+$fa-font-path: "lib/font-awesome-4.0.3/fonts"
+@import lib/font-awesome-4.0.3/scss/font-awesome
+
+body
+  :background white
+  :font-family sans, 'DejaVu Sans'
+
+table
+  :border-collapse collapse
+
+th, td
+  :border 1px solid black
+  :text-align center
+
+.autocol
+  :display inline-block
+  :vertical-align top
+  :width auto
+  :margin-right 1em
+
+.small
+  :font-size 80%
+
+$seq-color: green
+
+.icon
+  @extend .fa
+  :line-height inherit
+  &.true
+    @extend .fa-check
+    :color $seq-color
+  &.false
+    @extend .fa-ban
+    :color $seq-color
+  &.unconfirmed
+    @extend .fa-circle-o
+  &.confirmed
+    @extend .fa-check
+    :color #1cb841
+  &.lost
+    @extend .fa-exclamation-circle
+    :color #ca3c3c
+
+ul.rules
+  @extend .fa-ul
+  :margin-top 0
+  :margin-left 1.45em
+  i
+    @extend .fa-li
+
+table.rules
+  th:last-child, td:last-child
+    :border none
+    :padding-right 0.5em
+    :position  relative
+    :text-align left
+    .icon
+      :width 2.14286em
+      :text-align center
+
+.rule
+  :cursor pointer
+  &.lost
+    span
+      :text-decoration line-through
+
+.half
+  :display inline-block
+  :width 50%
+  :vertical-align top
+
+.examples
+  @extend .half
+  table
+    :margin-left auto
+    :margin-right 1em
+    td:first-child input
+      :width 100%
+
+.implications
+  @extend .half
+  form
+    :margin-bottom 6px
